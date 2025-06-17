@@ -1,16 +1,18 @@
 const express = require('express');
 const router = express.Router();
-const serviceController = require('../controllers/adminController'); // or wherever your controller is
+const serviceController = require('../controllers/serviceController');
+const auth = require('../middlewares/authMiddleware');
+const role = require('../middlewares/roleMiddleware');
+const multer = require('multer');
+const upload = multer({ dest: 'uploads/' });
 
-// Service Routes
-router.post('/services', serviceController.createService);
-router.get('/services', serviceController.getServices);
-router.put('/services/:id', serviceController.updateService);
-router.delete('/services/:id', serviceController.deleteService);
+// 🔓 PUBLIC: View services by category (men, women, kids)
+router.get('/', serviceController.getServices);
 
-// Order Routes
-router.get('/orders', serviceController.getOrders);
-router.post('/assign-tailor', serviceController.assignTailor);
-router.post('/send-payment-request', serviceController.sendPaymentRequest);
+// 🔐 ADMIN ROUTES:
+router.use(auth); // Must be logged in
+router.post('/', role(['admin']), upload.single('image'), serviceController.createService);
+router.put('/:id', role(['admin']), upload.single('image'), serviceController.updateService);
+router.delete('/:id', role(['admin']), serviceController.deleteService);
 
 module.exports = router;

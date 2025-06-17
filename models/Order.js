@@ -1,18 +1,34 @@
 const mongoose = require('mongoose');
 
 const orderSchema = new mongoose.Schema({
-  customer: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
-  service: { type: mongoose.Schema.Types.ObjectId, ref: 'Service', required: true },
-  tailor: { type: mongoose.Schema.Types.ObjectId, ref: 'User' }, // assigned tailor
+  service: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Service',
+    required: true
+  },
+  customer: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User',
+    required: true
+  },
+  tailor: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User',
+    default: null
+  },
   status: {
     type: String,
-    enum: ['pending', 'accepted', 'in_progress', 'completed', 'cancelled'],
-    default: 'pending',
+    enum: ['pending', 'accepted', 'in-progress', 'completed', 'cancelled'],
+    default: 'pending'
   },
-  paymentStatus: { type: String, enum: ['pending', 'paid', 'failed'], default: 'pending' },
-  referenceImageUrl: String,
-  referenceImagePublicId: String,
-  paymentRequestSent: { type: Boolean, default: false }, // for admin tracking
-}, { timestamps: true });
+  paymentRequestSent: {
+    type: Boolean,
+    default: false
+  },
+  createdAt: {
+    type: Date,
+    default: Date.now
+  }
+});
 
 module.exports = mongoose.model('Order', orderSchema);

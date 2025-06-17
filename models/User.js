@@ -20,7 +20,13 @@ const userSchema = new mongoose.Schema({
         enum: ['user', 'tailor', 'admin'],
         default: 'user'
     },
+
+profileImage: { type: String },
+profileImagePublicId: { type: String },
+
     // other fields ...
 });
+
+
 
 module.exports = mongoose.model('User', userSchema);

@@ -3,30 +3,24 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 
 const JWT_SECRET = process.env.JWT_SECRET || 'your_jwt_secret';
-const JWT_EXPIRES_IN = '7d'; // e.g., 7 days
+const JWT_EXPIRES_IN = '7d';
 
-// @desc    Register a new user
-// @route   POST /api/auth/register
-// @access  Public
+// ✅ Register User
 exports.registerUser = async (req, res) => {
   try {
     const { username, email, password, role } = req.body;
 
-    // Basic validation
     if (!username || !email || !password || !role) {
       return res.status(400).json({ message: 'All fields are required.' });
     }
 
-    // Check for existing user
     const existingUser = await User.findOne({ email });
     if (existingUser) {
       return res.status(400).json({ message: 'User already exists with this email.' });
     }
 
-    // Hash password
-    const hashedPassword = await bcrypt.hash(password, 6);
+    const hashedPassword = await bcrypt.hash(password, 10);
 
-    // Create and save new user
     const user = new User({ username, email, password: hashedPassword, role });
     await user.save();
 
@@ -37,32 +31,22 @@ exports.registerUser = async (req, res) => {
   }
 };
 
-// @desc    Login a user
-// @route   POST /api/auth/login
-// @access  Public
+// ✅ Login User
 exports.loginUser = async (req, res) => {
   try {
     const { email, password } = req.body;
 
-    // Validate input
     if (!email || !password) {
       return res.status(400).json({ message: 'Email and password are required.' });
     }
 
-    // Find user by email
     const user = await User.findOne({ email });
-    if (!user) {
-      return res.status(401).json({ message: 'Invalid email.' });
-    }
+    if (!user) return res.status(401).json({ message: 'Invalid email or password.' });
 
-    // Compare password
     const isMatch = await bcrypt.compare(password, user.password);
-    if (!isMatch) {
-      return res.status(401).json({ message: 'Invalid .' });
-    }
+    if (!isMatch) return res.status(401).json({ message: 'Invalid email or password.' });
 
-    // Generate token
-    const token = jwt.sign({ id: user._id }, JWT_SECRET, {
+    const token = jwt.sign({ id: user._id, role: user.role }, JWT_SECRET, {
       expiresIn: JWT_EXPIRES_IN,
     });
 

@@ -1,23 +1,23 @@
+// controllers/adminController.js
+
 const Service = require('../models/Service');
 const Order = require('../models/Order');
-const { uploadImage, deleteImage } = require('../utils/cloudinary');
 const User = require('../models/User');
+const { uploadImage, deleteImage } = require('../utils/cloudinary');
 const sendEmail = require('../utils/sendEmail');
-const multer = require('multer');
-const upload = multer({ dest: 'uploads/' }); // or use memoryStorage/cloudinary config
 
-
+// Create a new service (admin)
 exports.createService = async (req, res) => {
   try {
-    const { title, description, price } = req.body;
-    let image;
+    const { title, description, price, category } = req.body;
+    let image = {};
 
     if (req.file) {
       const uploaded = await uploadImage(req.file.path);
       image = { imageUrl: uploaded.secure_url, imagePublicId: uploaded.public_id };
     }
 
-    const service = new Service({ title, description, price, ...image });
+    const service = new Service({ title, description, price, category, ...image });
     await service.save();
 
     res.status(201).json(service);
@@ -26,26 +26,16 @@ exports.createService = async (req, res) => {
   }
 };
 
-exports.getServices = async (req, res) => {
-  try {
-    const services = await Service.find();
-    res.json(services);
-  } catch (error) {
-    res.status(500).json({ message: error.message });
-  }
-};
-
+// Update existing service
 exports.updateService = async (req, res) => {
   try {
     const { id } = req.params;
-    const { title, description, price } = req.body;
+    const { title, description, price, category } = req.body;
     const service = await Service.findById(id);
     if (!service) return res.status(404).json({ message: 'Service not found' });
 
     if (req.file) {
-      if (service.imagePublicId) {
-        await deleteImage(service.imagePublicId);
-      }
+      if (service.imagePublicId) await deleteImage(service.imagePublicId);
       const uploaded = await uploadImage(req.file.path);
       service.imageUrl = uploaded.secure_url;
       service.imagePublicId = uploaded.public_id;
@@ -54,6 +44,7 @@ exports.updateService = async (req, res) => {
     if (title) service.title = title;
     if (description) service.description = description;
     if (price) service.price = price;
+    if (category) service.category = category;
 
     await service.save();
     res.json(service);
@@ -62,6 +53,7 @@ exports.updateService = async (req, res) => {
   }
 };
 
+// Delete a service
 exports.deleteService = async (req, res) => {
   try {
     const { id } = req.params;
@@ -71,17 +63,18 @@ exports.deleteService = async (req, res) => {
     if (service.imagePublicId) await deleteImage(service.imagePublicId);
     await service.remove();
 
-    res.json({ message: 'Service deleted' });
+    res.json({ message: 'Service deleted successfully' });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
 };
 
+// Get all orders (admin)
 exports.getOrders = async (req, res) => {
   try {
     const orders = await Order.find()
-      .populate('customer', 'name email')
-      .populate('tailor', 'name email')
+      .populate('customer', 'username email')
+      .populate('tailor', 'username email')
       .populate('service', 'title price');
     res.json(orders);
   } catch (error) {
@@ -89,6 +82,7 @@ exports.getOrders = async (req, res) => {
   }
 };
 
+// Assign tailor to an order (admin)
 exports.assignTailor = async (req, res) => {
   try {
     const { orderId, tailorId } = req.body;
@@ -111,18 +105,22 @@ exports.assignTailor = async (req, res) => {
   }
 };
 
+// Send payment request email to customer for an order (admin)
 exports.sendPaymentRequest = async (req, res) => {
   try {
     const { orderId } = req.body;
-    const order = await Order.findById(orderId).populate('customer', 'email name service');
+    const order = await Order.findById(orderId)
+      .populate('customer', 'email username')
+      .populate('service', 'title price');
+
     if (!order) return res.status(404).json({ message: 'Order not found' });
     if (order.paymentRequestSent) return res.status(400).json({ message: 'Payment request already sent' });
 
     const subject = `Payment Request for Your Order #${order._id}`;
     const message = `
-      <p>Dear ${order.customer.name},</p>
+      <p>Dear ${order.customer.username},</p>
       <p>Please complete your payment of <strong>${order.service.price}</strong> for the service "<strong>${order.service.title}</strong>".</p>
-      <p>Thank you!</p>
+      <p>Thank you for your business!</p>
     `;
 
     await sendEmail(order.customer.email, subject, message);
@@ -130,7 +128,7 @@ exports.sendPaymentRequest = async (req, res) => {
     order.paymentRequestSent = true;
     await order.save();
 
-    res.json({ message: 'Payment request sent' });
+    res.json({ message: 'Payment request sent successfully' });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }

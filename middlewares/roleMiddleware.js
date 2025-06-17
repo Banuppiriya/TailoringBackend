@@ -1,10 +1,11 @@
-const roleMiddleware = (...allowedRoles) => {
+// middlewares/roleMiddleware.js
+module.exports = (allowedRoles) => {
+  // allow passing a string or array
+  const rolesArray = Array.isArray(allowedRoles) ? allowedRoles : [allowedRoles];
   return (req, res, next) => {
-    if (!req.user || !allowedRoles.includes(req.user.role)) {
+    if (!req.user || !rolesArray.includes(req.user.role)) {
       return res.status(403).json({ message: 'Forbidden: Insufficient rights' });
     }
     next();
   };
 };
-
-module.exports = roleMiddleware;

@@ -1,44 +1,41 @@
-const Tailor = require('../models/User'); // Assuming Tailor and User same collection, differentiated by role
+// controllers/tailorController.js
+const Tailor = require('../models/User');
 
-exports.getTailors = async (req, res) => {
-  try {
-    const tailors = await Tailor.find({ role: 'tailor' });
-    res.json(tailors);
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
-};
+// Admin methods:
+exports.getTailors = async (req, res) => { /*...*/ };
+exports.getTailorById = async (req, res) => { /*...*/ };
+exports.updateTailor = async (req, res) => { /*...*/ };
+exports.deleteTailor = async (req, res) => { /*...*/ };
 
-exports.getTailorById = async (req, res) => {
+// Tailor self-service methods:
+exports.getProfile = async (req, res) => {
   try {
-    const tailor = await Tailor.findOne({ _id: req.params.id, role: 'tailor' });
-    if (!tailor) return res.status(404).json({ error: 'Tailor not found' });
+    const tailor = await Tailor.findById(req.user.id);
+    if (!tailor || tailor.role !== 'tailor') {
+      return res.status(403).json({ message: 'Unauthorized access' });
+    }
     res.json(tailor);
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    res.status(500).json({ message: error.message });
   }
 };
 
-exports.updateTailor = async (req, res) => {
+exports.updateProfile = async (req, res) => {
   try {
-    const updatedTailor = await Tailor.findOneAndUpdate(
-      { _id: req.params.id, role: 'tailor' },
-      req.body,
-      { new: true }
-    );
-    if (!updatedTailor) return res.status(404).json({ error: 'Tailor not found' });
-    res.json(updatedTailor);
+    const tailor = await Tailor.findById(req.user.id);
+    if (!tailor || tailor.role !== 'tailor') {
+      return res.status(403).json({ message: 'Unauthorized access' });
+    }
+    const { username, email, bio, phone } = req.body;
+    if (username) tailor.username = username;
+    if (email) tailor.email = email;
+    if (bio) tailor.bio = bio;
+    if (phone) tailor.phone = phone;
+    // If handling profile image:
+    // if (req.file) { /* upload/delete logic */ }
+    await tailor.save();
+    res.json({ message: 'Profile updated', tailor });
   } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
-};
-
-exports.deleteTailor = async (req, res) => {
-  try {
-    const deletedTailor = await Tailor.findOneAndDelete({ _id: req.params.id, role: 'tailor' });
-    if (!deletedTailor) return res.status(404).json({ error: 'Tailor not found' });
-    res.json({ message: 'Tailor deleted successfully' });
-  } catch (error) {
-    res.status(500).json({ error: error.message });
+    res.status(500).json({ message: error.message });
   }
 };

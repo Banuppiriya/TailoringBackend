@@ -1,21 +1,16 @@
-// controllers/userController.js
-const User = require('../models/User'); // Add this if not present
+const Order = require('../models/Order');
 
-const createUser = async (req, res) => {
+exports.createOrder = async (req, res) => {
   try {
-    const { username, ...rest } = req.body;
-
-    if (!username) {
-      return res.status(400).json({ error: "Username is required" });
-    }
-
-    const user = new User({ username, ...rest });
-    await user.save();
-
-    res.status(201).json(user);
+    const { serviceId } = req.body;
+    const order = new Order({
+      customer: req.user.id,
+      service: serviceId,
+      status: 'pending',
+    });
+    await order.save();
+    res.status(201).json(order);
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    res.status(500).json({ message: error.message });
   }
 };
-
-module.exports = { createUser };

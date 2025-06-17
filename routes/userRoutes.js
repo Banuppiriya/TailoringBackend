@@ -1,8 +1,8 @@
-// routes/userRoutes.js
 const express = require('express');
 const router = express.Router();
-const { createUser } = require('../controllers/userController'); // ✅ Import correctly
+const auth = require('../middlewares/authMiddleware');
+const userController = require('../controllers/userController');
 
-router.post('/create', createUser); // ✅ Use correct function
+router.post('/orders', auth, userController.createOrder);
 
 module.exports = router;

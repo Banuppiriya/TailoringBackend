@@ -1,12 +1,21 @@
+// routes/tailorRoutes.js
 const express = require('express');
 const router = express.Router();
 const tailorController = require('../controllers/tailorController');
-const authMiddleware = require('../middlewares/authMiddleware');
-const roleMiddleware = require('../middlewares/roleMiddleware');
+const auth = require('../middlewares/authMiddleware');
+const role = require('../middlewares/roleMiddleware');
+const multer = require('multer');
+const upload = multer({ dest: 'uploads/' }); // if using image upload in profile
 
-// Only authenticated users with role 'admin' or 'tailor' can access tailor routes
-router.use(authMiddleware);
-router.use(roleMiddleware(['admin', 'tailor']));
+// 1) Routes for logged-in Tailor only:
+router.use(auth);
+router.use(role('tailor'));
+
+router.get('/me', tailorController.getProfile);
+router.put('/me', upload.single('profileImage'), tailorController.updateProfile);
+
+// 2) After self-service, routes for Admin only:
+router.use(role('admin'));
 
 router.get('/', tailorController.getTailors);
 router.get('/:id', tailorController.getTailorById);
