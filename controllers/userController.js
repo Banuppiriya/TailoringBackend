@@ -1,42 +1,21 @@
-const Service = require('../models/Service');
-const Order = require('../models/Order');
+// controllers/userController.js
+const User = require('../models/User'); // Add this if not present
 
-exports.getServices = async (req, res) => {
+const createUser = async (req, res) => {
   try {
-    const services = await Service.find();
-    res.json(services);
+    const { username, ...rest } = req.body;
+
+    if (!username) {
+      return res.status(400).json({ error: "Username is required" });
+    }
+
+    const user = new User({ username, ...rest });
+    await user.save();
+
+    res.status(201).json(user);
   } catch (error) {
-    res.status(500).json({ message: 'Server error' });
+    res.status(500).json({ error: error.message });
   }
 };
 
-exports.placeOrder = async (req, res) => {
-  const { serviceId, orderDetails } = req.body;
-  try {
-    const service = await Service.findById(serviceId);
-    if (!service) return res.status(404).json({ message: 'Service not found' });
-
-    const order = new Order({
-      user: req.user._id,
-      service: serviceId,
-      orderDetails,
-      status: 'pending',
-    });
-    await order.save();
-
-    res.status(201).json(order);
-  } catch (error) {
-    res.status(500).json({ message: 'Server error' });
-  }
-};
-
-exports.getUserOrders = async (req, res) => {
-  try {
-    const orders = await Order.find({ user: req.user._id })
-      .populate('service', 'name price')
-      .populate('tailor', 'username email');
-    res.json(orders);
-  } catch (error) {
-    res.status(500).json({ message: 'Server error' });
-  }
-};
+module.exports = { createUser };

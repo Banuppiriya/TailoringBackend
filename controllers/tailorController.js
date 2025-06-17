@@ -1,37 +1,44 @@
-const Order = require('../models/Order');
+const Tailor = require('../models/User'); // Assuming Tailor and User same collection, differentiated by role
 
-exports.getAssignedOrders = async (req, res) => {
+exports.getTailors = async (req, res) => {
   try {
-    const orders = await Order.find({ tailor: req.user._id })
-      .populate('user', 'username email')
-      .populate('service', 'name price');
-    res.json(orders);
+    const tailors = await Tailor.find({ role: 'tailor' });
+    res.json(tailors);
   } catch (error) {
-    res.status(500).json({ message: 'Server error' });
+    res.status(500).json({ error: error.message });
   }
 };
 
-exports.updateOrderStatus = async (req, res) => {
-  const { orderId } = req.params;
-  const { status } = req.body; // Only allow 'inProgress' or 'completed'
-
-  if (!['inProgress', 'completed'].includes(status)) {
-    return res.status(400).json({ message: 'Invalid status update' });
-  }
-
+exports.getTailorById = async (req, res) => {
   try {
-    const order = await Order.findById(orderId);
-    if (!order) return res.status(404).json({ message: 'Order not found' });
-
-    if (order.tailor.toString() !== req.user._id.toString()) {
-      return res.status(403).json({ message: 'Not authorized to update this order' });
-    }
-
-    order.status = status;
-    await order.save();
-
-    res.json(order);
+    const tailor = await Tailor.findOne({ _id: req.params.id, role: 'tailor' });
+    if (!tailor) return res.status(404).json({ error: 'Tailor not found' });
+    res.json(tailor);
   } catch (error) {
-    res.status(500).json({ message: 'Server error' });
+    res.status(500).json({ error: error.message });
+  }
+};
+
+exports.updateTailor = async (req, res) => {
+  try {
+    const updatedTailor = await Tailor.findOneAndUpdate(
+      { _id: req.params.id, role: 'tailor' },
+      req.body,
+      { new: true }
+    );
+    if (!updatedTailor) return res.status(404).json({ error: 'Tailor not found' });
+    res.json(updatedTailor);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
+exports.deleteTailor = async (req, res) => {
+  try {
+    const deletedTailor = await Tailor.findOneAndDelete({ _id: req.params.id, role: 'tailor' });
+    if (!deletedTailor) return res.status(404).json({ error: 'Tailor not found' });
+    res.json({ message: 'Tailor deleted successfully' });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
   }
 };

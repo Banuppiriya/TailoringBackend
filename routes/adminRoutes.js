@@ -1,24 +1,23 @@
 const express = require('express');
 const router = express.Router();
-const authMiddleware = require('../middlewares/authMiddleware');
-const roleMiddleware = require('../middlewares/roleMiddleware');
-const {
-  createService,
-  updateService,
-  deleteService,
-  getAllServices,
-  // other admin functions
-} = require('../controllers/adminController');
+const auth = require('../middlewares/authMiddleware');
+const role = require('../middlewares/roleMiddleware');
+const adminController = require('../controllers/adminController');
+const multer = require('multer');
+const upload = multer({ dest: 'uploads/' }); // You can configure multer for your file storage needs
 
-// All admin routes require admin role and auth
-router.use(authMiddleware);
-router.use(roleMiddleware('admin'));
+router.use(auth);
+router.use(role('admin'));
 
-router.get('/services', getAllServices);
-router.post('/services', createService);
-router.put('/services/:id', updateService);
-router.delete('/services/:id', deleteService);
+// Service routes
+router.post('/services', upload.single('image'), adminController.createService);
+router.get('/services', adminController.getServices);
+router.put('/services/:id', upload.single('image'), adminController.updateService);
+router.delete('/services/:id', adminController.deleteService);
 
-// other routes...
+// Order routes
+router.get('/orders', adminController.getOrders);
+router.post('/orders/assign-tailor', adminController.assignTailor);
+router.post('/orders/send-payment', adminController.sendPaymentRequest);
 
 module.exports = router;
