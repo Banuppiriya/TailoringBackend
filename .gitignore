@@ -7,7 +7,7 @@ logs/
 npm-debug.log*
 
 # Environment variables
-.env
+ .Environment
 
 # OS generated files
 .DS_Store
