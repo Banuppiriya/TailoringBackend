@@ -8,7 +8,7 @@ const serviceSchema = new mongoose.Schema({
   imagePublicId: String,
   category: {
     type: String,
-    enum: ['women', 'kids', 'unisex'], // <-- example
+    enum: ['women', 'kids', 'men'], // <-- example
     required: true,
   },
 });
