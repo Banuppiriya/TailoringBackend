@@ -1,8 +1,9 @@
-const express = require('express');
+import express from 'express';
+import * as orderController from '../controllers/orderController.js';
+import auth from '../middlewares/authMiddleware.js';
+import role from '../middlewares/roleMiddleware.js';
+
 const router = express.Router();
-const orderController = require('../controllers/orderController');
-const auth = require('../middlewares/authMiddleware');
-const role = require('../middlewares/roleMiddleware');
 
 // Auth required for all
 router.use(auth);
@@ -19,4 +20,4 @@ router.get('/my-orders', role(['customer']), orderController.getCustomerOrders);
 router.get('/tailor-orders', role(['tailor']), orderController.getTailorOrders);
 router.put('/tailor-orders/:orderId', role(['tailor']), orderController.updateOrderStatus);
 
-module.exports = router;
+export default router;

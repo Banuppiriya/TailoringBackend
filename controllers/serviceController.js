@@ -1,15 +1,20 @@
-const Service = require('../models/Service');
-const { uploadImage, deleteImage } = require('../utils/cloudinary');
+// controllers/serviceController.js
+
+import Service from '../models/Service.js';
+import { uploadImage, deleteImage } from '../utils/cloudinary.js';
 
 // ✅ ADMIN: Create a new service
-exports.createService = async (req, res) => {
+export const createService = async (req, res) => {
   try {
     const { title, description, price, category } = req.body;
     let image;
 
     if (req.file) {
       const uploaded = await uploadImage(req.file.path);
-      image = { imageUrl: uploaded.secure_url, imagePublicId: uploaded.public_id };
+      image = {
+        imageUrl: uploaded.secure_url,
+        imagePublicId: uploaded.public_id,
+      };
     }
 
     const service = new Service({ title, description, price, category, ...image });
@@ -21,11 +26,10 @@ exports.createService = async (req, res) => {
   }
 };
 
-// ✅ PUBLIC/USER: Get all services (optional category filter)
-exports.getServices = async (req, res) => {
+// ✅ PUBLIC/USER: Get all services (with optional category filter)
+export const getServices = async (req, res) => {
   try {
     const { category } = req.query;
-
     const filter = category ? { category } : {};
     const services = await Service.find(filter);
     res.json(services);
@@ -35,10 +39,11 @@ exports.getServices = async (req, res) => {
 };
 
 // ✅ ADMIN: Update a service
-exports.updateService = async (req, res) => {
+export const updateService = async (req, res) => {
   try {
     const { id } = req.params;
     const { title, description, price, category } = req.body;
+
     const service = await Service.findById(id);
     if (!service) return res.status(404).json({ message: 'Service not found' });
 
@@ -62,9 +67,10 @@ exports.updateService = async (req, res) => {
 };
 
 // ✅ ADMIN: Delete a service
-exports.deleteService = async (req, res) => {
+export const deleteService = async (req, res) => {
   try {
     const { id } = req.params;
+
     const service = await Service.findById(id);
     if (!service) return res.status(404).json({ message: 'Service not found' });
 

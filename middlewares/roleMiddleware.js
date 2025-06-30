@@ -1,5 +1,4 @@
-// middlewares/roleMiddleware.js
-module.exports = (allowedRoles) => {
+const roleMiddleware = (allowedRoles) => {
   // allow passing a string or array
   const rolesArray = Array.isArray(allowedRoles) ? allowedRoles : [allowedRoles];
   return (req, res, next) => {
@@ -9,3 +8,5 @@ module.exports = (allowedRoles) => {
     next();
   };
 };
+
+export default roleMiddleware;

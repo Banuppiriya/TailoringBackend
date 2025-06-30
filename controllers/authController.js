@@ -1,12 +1,14 @@
-const User = require('../models/User');
-const bcrypt = require('bcryptjs');
-const jwt = require('jsonwebtoken');
+// controllers/authController.js
+
+import User from '../models/User.js';
+import bcrypt from 'bcryptjs';
+import jwt from 'jsonwebtoken';
 
 const JWT_SECRET = process.env.JWT_SECRET || 'your_jwt_secret';
 const JWT_EXPIRES_IN = '7d';
 
-// ✅ Register User
-exports.registerUser = async (req, res) => {
+// Register User
+export const registerUser = async (req, res) => {
   try {
     const { username, email, password, role } = req.body;
 
@@ -32,7 +34,7 @@ exports.registerUser = async (req, res) => {
 };
 
 // ✅ Login User
-exports.loginUser = async (req, res) => {
+export const loginUser = async (req, res) => {
   try {
     const { email, password } = req.body;
 

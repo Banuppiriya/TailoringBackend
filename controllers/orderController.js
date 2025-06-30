@@ -1,10 +1,12 @@
-const Order = require('../models/Order');
-const User = require('../models/User');
-const Service = require('../models/Service');
-const sendEmail = require('../utils/sendEmail');
+// controllers/adminOrderController.js
+
+import Order from '../models/Order.js';
+import User from '../models/User.js';
+import Service from '../models/Service.js';
+import sendEmail from '../utils/sendEmail.js';
 
 // ✅ Get all orders (Admin)
-exports.getOrders = async (req, res) => {
+export const getOrders = async (req, res) => {
   try {
     const orders = await Order.find()
       .populate('customer', 'username email')
@@ -17,7 +19,7 @@ exports.getOrders = async (req, res) => {
 };
 
 // ✅ Assign tailor to an order (Admin)
-exports.assignTailor = async (req, res) => {
+export const assignTailor = async (req, res) => {
   try {
     const { orderId, tailorId } = req.body;
 
@@ -44,7 +46,7 @@ exports.assignTailor = async (req, res) => {
 };
 
 // ✅ Send payment request (Admin)
-exports.sendPaymentRequest = async (req, res) => {
+export const sendPaymentRequest = async (req, res) => {
   try {
     const { orderId } = req.body;
 

@@ -1,7 +1,9 @@
-const stripe = require('../config/stripe');
-const sendEmail = require('../utils/sendEmail');
+// controllers/paymentController.js
 
-exports.createCheckoutSession = async (req, res) => {
+import stripe from '../config/stripe.js';
+import sendEmail from '../utils/sendEmail.js';
+
+export const createCheckoutSession = async (req, res) => {
   const { email, amount, serviceName } = req.body;
 
   try {

@@ -1,6 +1,6 @@
-const Order = require('../models/Order');
+import Order from '../models/Order.js';
 
-exports.createOrder = async (req, res) => {
+export const createOrder = async (req, res) => {
   try {
     const { serviceId } = req.body;
     const order = new Order({

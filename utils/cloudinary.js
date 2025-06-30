@@ -1,6 +1,7 @@
-require('dotenv').config();
+import dotenv from 'dotenv';
+dotenv.config();
 
-const cloudinary = require('cloudinary').v2;
+import { v2 as cloudinary } from 'cloudinary';
 
 cloudinary.config({
   cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
@@ -8,12 +9,12 @@ cloudinary.config({
   api_secret: process.env.CLOUDINARY_API_SECRET,
 });
 
-const uploadImage = async (filePath) => {
+export const uploadImage = async (filePath) => {
   return await cloudinary.uploader.upload(filePath, { folder: 'services' });
 };
 
-const deleteImage = async (publicId) => {
+export const deleteImage = async (publicId) => {
   return await cloudinary.uploader.destroy(publicId);
 };
 
-module.exports = { cloudinary, uploadImage, deleteImage };
+export { cloudinary };

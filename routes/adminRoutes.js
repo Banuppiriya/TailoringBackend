@@ -1,11 +1,11 @@
-const express = require('express');
-const router = express.Router();
-const multer = require('multer');
-const upload = multer({ dest: 'uploads/' });
+import express from 'express';
+import * as adminController from '../controllers/adminController.js';  // <== here
+import auth from '../middlewares/authMiddleware.js';
+import role from '../middlewares/roleMiddleware.js';
+import multer from 'multer';
 
-const auth = require('../middlewares/authMiddleware');
-const role = require('../middlewares/roleMiddleware');
-const adminController = require('../controllers/adminController');
+const router = express.Router();
+const upload = multer({ dest: 'uploads/' });
 
 // Protect all admin routes with authentication and admin role check
 router.use(auth);
@@ -21,4 +21,4 @@ router.get('/orders', adminController.getOrders);
 router.post('/orders/assign-tailor', adminController.assignTailor);
 router.post('/orders/send-payment', adminController.sendPaymentRequest);
 
-module.exports = router;
+export default router;

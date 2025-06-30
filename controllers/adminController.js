@@ -1,13 +1,13 @@
-// controllers/adminController.js
+// Updated controllers/adminController.js
 
-const Service = require('../models/Service');
-const Order = require('../models/Order');
-const User = require('../models/User');
-const { uploadImage, deleteImage } = require('../utils/cloudinary');
-const sendEmail = require('../utils/sendEmail');
+import Service from '../models/Service.js';
+import Order from '../models/Order.js';
+import User from '../models/User.js';
+import { uploadImage, deleteImage } from '../utils/cloudinary.js';
+import sendEmail from '../utils/sendEmail.js';
 
 // Create a new service (admin)
-exports.createService = async (req, res) => {
+export const createService = async (req, res) => {
   try {
     const { title, description, price, category } = req.body;
     let image = {};
@@ -22,12 +22,12 @@ exports.createService = async (req, res) => {
 
     res.status(201).json(service);
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    res.status(500).json({ message: 'Failed to create service', error: error.message });
   }
 };
 
 // Update existing service
-exports.updateService = async (req, res) => {
+export const updateService = async (req, res) => {
   try {
     const { id } = req.params;
     const { title, description, price, category } = req.body;
@@ -41,36 +41,36 @@ exports.updateService = async (req, res) => {
       service.imagePublicId = uploaded.public_id;
     }
 
-    if (title) service.title = title;
-    if (description) service.description = description;
-    if (price) service.price = price;
-    if (category) service.category = category;
+    service.title = title || service.title;
+    service.description = description || service.description;
+    service.price = price || service.price;
+    service.category = category || service.category;
 
     await service.save();
     res.json(service);
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    res.status(500).json({ message: 'Failed to update service', error: error.message });
   }
 };
 
 // Delete a service
-exports.deleteService = async (req, res) => {
+export const deleteService = async (req, res) => {
   try {
     const { id } = req.params;
     const service = await Service.findById(id);
     if (!service) return res.status(404).json({ message: 'Service not found' });
 
     if (service.imagePublicId) await deleteImage(service.imagePublicId);
-    await service.remove();
+    await service.deleteOne();
 
     res.json({ message: 'Service deleted successfully' });
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    res.status(500).json({ message: 'Failed to delete service', error: error.message });
   }
 };
 
 // Get all orders (admin)
-exports.getOrders = async (req, res) => {
+export const getOrders = async (req, res) => {
   try {
     const orders = await Order.find()
       .populate('customer', 'username email')
@@ -78,12 +78,12 @@ exports.getOrders = async (req, res) => {
       .populate('service', 'title price');
     res.json(orders);
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    res.status(500).json({ message: 'Failed to fetch orders', error: error.message });
   }
 };
 
 // Assign tailor to an order (admin)
-exports.assignTailor = async (req, res) => {
+export const assignTailor = async (req, res) => {
   try {
     const { orderId, tailorId } = req.body;
     const order = await Order.findById(orderId);
@@ -98,15 +98,14 @@ exports.assignTailor = async (req, res) => {
     order.status = 'accepted';
 
     await order.save();
-
     res.json(order);
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    res.status(500).json({ message: 'Failed to assign tailor', error: error.message });
   }
 };
 
 // Send payment request email to customer for an order (admin)
-exports.sendPaymentRequest = async (req, res) => {
+export const sendPaymentRequest = async (req, res) => {
   try {
     const { orderId } = req.body;
     const order = await Order.findById(orderId)
@@ -130,6 +129,6 @@ exports.sendPaymentRequest = async (req, res) => {
 
     res.json({ message: 'Payment request sent successfully' });
   } catch (error) {
-    res.status(500).json({ message: error.message });
-  }
+    res.status(500).json({ message: 'Failed to send payment request', error: error.message });
+  } 
 };

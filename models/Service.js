@@ -1,4 +1,4 @@
-const mongoose = require('mongoose');
+import mongoose from 'mongoose';
 
 const serviceSchema = new mongoose.Schema({
   title: { type: String, required: true },
@@ -11,7 +11,6 @@ const serviceSchema = new mongoose.Schema({
     enum: ['women', 'kids', 'unisex'], // <-- example
     required: true,
   },
-
 });
 
-module.exports = mongoose.model('Service', serviceSchema);
+export default mongoose.model('Service', serviceSchema);
