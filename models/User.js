@@ -1,28 +1,54 @@
 import mongoose from 'mongoose';
+import crypto from 'crypto';
 
 const userSchema = new mongoose.Schema({
   username: {
     type: String,
-    required: true,  // This makes it mandatory
-    unique: true
+    required: true,
+    trim: true,
   },
   email: {
     type: String,
     required: true,
-    unique: true
+    unique: true,
+    lowercase: true,
   },
   password: {
     type: String,
-    required: true
+    required: function () {
+      return this.provider !== 'google';
+    },
+    select: false,
   },
   role: {
     type: String,
-    enum: ['user', 'tailor', 'admin', 'customer'],
-    default: 'user'
+    enum: ['customer', 'tailor', 'admin'],
+    default: 'customer',
   },
-  profileImage: { type: String },
-  profileImagePublicId: { type: String },
-  // other fields ...
+  provider: {
+    type: String,
+    enum: ['local', 'google'],
+    default: 'local',
+  },
+  // --- New field for profile picture ---
+  profilePicture: {
+    type: String,
+    default: '', // Default to an empty string if no picture is set
+  },
+  // --- End new field ---
+  passwordResetToken: String,
+  passwordResetExpires: Date,
+}, {
+  timestamps: true,
 });
 
-export default mongoose.model('User', userSchema);
+// Method to generate password reset token
+userSchema.methods.createPasswordResetToken = function () {
+  const resetToken = crypto.randomBytes(32).toString('hex');
+  this.passwordResetToken = crypto.createHash('sha256').update(resetToken).digest('hex');
+  this.passwordResetExpires = Date.now() + 10 * 60 * 1000; // 10 minutes
+  return resetToken;
+};
+
+const User = mongoose.model('User', userSchema);
+export default User; // ✅ ES6 default export

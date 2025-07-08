@@ -1,19 +1,41 @@
 import express from 'express';
-import * as serviceController from '../controllers/serviceController.js';
-import auth from '../middlewares/authMiddleware.js';
-import role from '../middlewares/roleMiddleware.js';
-import multer from 'multer';
+import {
+  createService,
+  getServices,
+  updateService,
+  deleteService,
+} from '../controllers/serviceController.js';
+import { protect, authorize } from '../middlewares/authMiddleware.js';
+import upload from '../utils/multerMiddleware.js';  // <-- import multer upload here
+import { uploadImage } from '../utils/cloudinary.js';
 
 const router = express.Router();
-const upload = multer({ dest: 'uploads/' });
 
-// 🔓 PUBLIC: View services by category (men, women, kids)
-router.get('/', serviceController.getServices);
+// Public routes (anyone can view services)
+router.get('/', getServices);
 
-// 🔐 ADMIN ROUTES:
-router.use(auth); // Must be logged in
-router.post('/', role(['admin']), upload.single('image'), serviceController.createService);
-router.put('/:id', role(['admin']), upload.single('image'), serviceController.updateService);
-router.delete('/:id', role(['admin']), serviceController.deleteService);
+// Admin-only routes
+router.post(
+  '/',
+  protect,
+  authorize(['admin']),
+  upload.single('image'), // 'image' should match the field name in your form/frontend
+  createService
+);
+
+router.put(
+  '/:id',
+  protect,
+  authorize(['admin']),
+  upload.single('image'), // 'image' should match the field name in your form/frontend
+  updateService
+);
+
+router.delete(
+  '/:id',
+  protect,
+  authorize(['admin']),
+  deleteService
+);
 
 export default router;

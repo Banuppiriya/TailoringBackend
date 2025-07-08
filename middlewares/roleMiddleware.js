@@ -1,12 +1,11 @@
-const roleMiddleware = (allowedRoles) => {
-  // allow passing a string or array
-  const rolesArray = Array.isArray(allowedRoles) ? allowedRoles : [allowedRoles];
+// roleMiddleware.js
+const role = (...allowedRoles) => {
   return (req, res, next) => {
-    if (!req.user || !rolesArray.includes(req.user.role)) {
-      return res.status(403).json({ message: 'Forbidden: Insufficient rights' });
+    if (!req.user || !allowedRoles.includes(req.user.role)) {
+      return res.status(403).json({ message: `Access denied. You must be one of: ${allowedRoles.join(', ')}` });
     }
     next();
   };
 };
 
-export default roleMiddleware;
+export default role;
