@@ -1,3 +1,13 @@
+// Admin: Get all users
+export const getAllUsers = async (req, res) => {
+  try {
+    const users = await User.find().select('-password');
+    res.status(200).json(users);
+  } catch (error) {
+    console.error('Get All Users Error:', error);
+    res.status(500).json({ message: 'Internal server error.' });
+  }
+};
 import Order from '../models/Order.js';
 import User from '../models/User.js';
 
@@ -27,13 +37,12 @@ export const updateUserProfile = async (req, res) => {
       user.phone = req.body.phone || user.phone;
       user.bio = req.body.bio || user.bio;
 
-      // Update profile picture if provided
       if (req.body.profilePicture !== undefined) {
         user.profilePicture = req.body.profilePicture;
       }
 
       if (req.body.password) {
-        user.password = req.body.password; // Ensure hashing in User model
+        user.password = req.body.password;
       }
 
       const updatedUser = await user.save();
@@ -73,6 +82,11 @@ export const getOrderHistory = async (req, res) => {
 // Create a new order
 export const createOrder = async (req, res) => {
   try {
+    // Only allow customers to place orders
+    if (!req.user || req.user.role !== 'customer') {
+      return res.status(403).json({ message: 'Only customers can place orders.' });
+    }
+
     const { serviceId, designDetails } = req.body;
 
     if (!serviceId) {
@@ -97,7 +111,8 @@ export const createOrder = async (req, res) => {
 // Get all tailors
 export const getTailors = async (req, res) => {
   try {
-    const tailors = await User.find({ role: 'tailor' }).select('-password');
+    // Only return tailors who are available
+    const tailors = await User.find({ role: 'tailor', available: true }).select('-password');
     res.status(200).json(tailors);
   } catch (error) {
     console.error('Get Tailors Error:', error);

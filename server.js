@@ -1,13 +1,12 @@
-// ES6 module version
-
 import dotenv from 'dotenv';
 dotenv.config();
 
 import express from 'express';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import connectDB from './config/db.js';
 import cors from 'cors';
+
+import connectDB from './config/db.js';
 
 // Import routers
 import authRoutes from './routes/authRoutes.js';
@@ -15,61 +14,71 @@ import tailorRoutes from './routes/tailorRoutes.js';
 import userRoutes from './routes/userRoutes.js';
 import serviceRoutes from './routes/serviceRoutes.js';
 import paymentRoutes from './routes/paymentRoutes.js';
-import orderRoutes from './routes/orderRoutes.js'; // <-- fixed import name
 import measurementRoutes from './routes/measurementRoutes.js';
 import customizerRoutes from './routes/customizerRoutes.js';
+import orderRoutes from './routes/orderRoutes.js';
+import uploadRoutes from './routes/upload.js';
 
-// __dirname workaround in ES6
+
+// __dirname workaround in ES6 modules
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// Connect DB
+// Connect to MongoDB
 connectDB();
 
 const app = express();
+
+// Middleware to parse JSON bodies
 app.use(express.json());
+
+// Serve static uploads folder
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
-const allowedOrigins = ['http://localhost:5173' // Add your frontend URLs here
-];
-
+// CORS configuration
+const allowedOrigins = ['http://localhost:5173'];
 app.use(cors({
-  origin: function(origin, callback) {
-    // allow requests with no origin (like mobile apps or curl requests)
-    if(!origin) return callback(null, true);
-    if(allowedOrigins.indexOf(origin) === -1){
-      const msg = 'The CORS policy for this site does not allow access from the specified Origin.';
+  origin: (origin, callback) => {
+    if (!origin) return callback(null, true); // allow REST tools like Postman
+    if (!allowedOrigins.includes(origin)) {
+      const msg = 'CORS policy does not allow access from the specified Origin.';
       return callback(new Error(msg), false);
     }
     return callback(null, true);
   },
-  credentials: true, // Allow cookies to be sent
+  credentials: true,
 }));
 
-// Mount routes
+// Mount API routes
 app.use('/api/auth', authRoutes);
 app.use('/api/tailor', tailorRoutes);
 app.use('/api/user', userRoutes);
 app.use('/api/services', serviceRoutes);
 app.use('/api/payment', paymentRoutes);
-app.use('/api/orderRoutes', orderRoutes);
-app.use('/api/order', orderRoutes);
+app.use('/api/orders', orderRoutes);
 app.use('/api/measurements', measurementRoutes);
 app.use('/api/customizer', customizerRoutes);
-app.use('/api/profile', userRoutes); // Assuming profile routes are under userRoutes
-
-const isDevelopment = process.env.NODE_ENV === 'development';
+app.use('/api/upload', uploadRoutes);
+app.use('/uploads', express.static(path.join(path.resolve(), 'uploads')));
+// Optional: If you want to support `/api/profile` same as `/api/user`
+app.use('/api/profile', userRoutes);
 
 // Global error handler
+const isDevelopment = process.env.NODE_ENV === 'development';
 app.use((err, req, res, next) => {
   console.error(err.stack);
   if (isDevelopment) {
-    res.status(500).json({ message: err.message, stack: err.stack });
+    res.status(err.status || 500).json({
+      message: err.message,
+      stack: err.stack,
+    });
   } else {
-    res.status(500).json({ message: 'Server Error' });
+    res.status(err.status || 500).json({ message: 'Server Error' });
   }
 });
 
+// Start server
 const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
-
+app.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`);
+});

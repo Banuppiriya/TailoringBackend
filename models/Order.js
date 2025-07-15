@@ -1,60 +1,72 @@
-// src/models/order.js
+// models/Order.js
 import mongoose from 'mongoose';
 
-const orderSchema = new mongoose.Schema({
-  customer: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'User',
-    required: true,
-  },
-  service: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'Service',
-    required: true,
-  },
-  tailor: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'User',
-  },
-  status: {
-    type: String,
-    enum: ['pending', 'inProgress', 'completed', 'cancelled', 'delivered'],
-    default: 'pending',
-  },
-  designDetails: {
-    type: String,
-  },
-  // Embed measurements directly as subdocuments here
-  measurements: {
-    upperBody: {
-      chest: { type: String, default: '' },
-      shoulderWidth: { type: String, default: '' },
-      armLength: { type: String, default: '' },
-      bicep: { type: String, default: '' },
-      neck: { type: String, default: '' },
-    },
-    lowerBody: {
-      waist: { type: String, default: '' },
-      hip: { type: String, default: '' },
-      inseam: { type: String, default: '' },
-      thigh: { type: String, default: '' },
-      height: { type: String, default: '' },
-    },
-  },
-  paymentStatus: {
-    type: String,
-    enum: ['pending', 'paid', 'failed'],
-    default: 'pending',
-  },
-  paymentIntentId: {
-    type: String,
-  },
-  paymentRequestSent: {
-    type: Boolean,
-    default: false,
-  },
-}, {
-  timestamps: true,
-});
+const { Schema, model, Types } = mongoose;
 
-export default mongoose.model('Order', orderSchema);
+const OrderSchema = new Schema(
+  {
+    customer: {
+      type: Types.ObjectId,
+      ref: 'User',
+      required: false, // Optional for guest checkouts
+    },
+    customerName: {
+      type: String,
+      required: false, // ✅ Now optional
+      trim: true,
+    },
+    customerEmail: {
+      type: String,
+      required: false, // ✅ Now optional
+      lowercase: true,
+      trim: true,
+      match: [/\S+@\S+\.\S+/, 'Please provide a valid email address'],
+    },
+    customerPhone: {
+      type: String,
+      required: false, // ✅ Now optional
+      trim: true,
+    },
+    service: {
+      type: Types.ObjectId,
+      ref: 'Service',
+      required: [true, 'Service is required'],
+    },
+    quantity: {
+      type: Number,
+      required: true,
+      min: [1, 'Quantity must be at least 1'],
+    },
+    specialInstructions: {
+      type: String,
+      trim: true,
+      default: '',
+    },
+    status: {
+      type: String,
+      enum: ['pending', 'accepted', 'processing', 'completed', 'cancelled'],
+      default: 'pending',
+    },
+    tailor: {
+      type: Types.ObjectId,
+      ref: 'User',
+      required: false,
+    },
+    paymentStatus: {
+      type: String,
+      enum: ['unpaid', 'paid', 'refunded', 'pending'], // 🧹 Cleaned up
+      default: 'unpaid',
+    },
+    totalPrice: {
+      type: Number,
+      required: false,
+      min: [0, 'Price cannot be negative'],
+    },
+  },
+  {
+    timestamps: true, // Adds createdAt and updatedAt fields
+  }
+);
+
+const Order = model('Order', OrderSchema);
+export default Order;

@@ -87,10 +87,13 @@ export const updateProfile = async (req, res) => {
 export const getAssignedOrders = async (req, res) => {
   try {
     const orders = await Order.find({ tailor: req.user.id })
-      .populate('customer', 'username email')
-      .populate('service', 'title');
-    res.status(200).json(orders);
+      .populate({ path: 'customer', select: 'username email', strictPopulate: false })
+      .populate({ path: 'service', select: 'title', strictPopulate: false });
+    // Filter out orders with missing customer or service references
+    const safeOrders = orders.filter(order => order.customer && order.service);
+    res.status(200).json(safeOrders);
   } catch (error) {
+    console.error('Error in getAssignedOrders:', error);
     res.status(500).json({ message: 'Internal server error.' });
   }
 };

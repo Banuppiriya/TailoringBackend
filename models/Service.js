@@ -1,36 +1,32 @@
 import mongoose from 'mongoose';
+import User from './User.js';  // Keep this if you're referencing User somewhere
 
 const serviceSchema = new mongoose.Schema({
   title: {
     type: String,
-    required: [true, 'Service title is required.'],
+    required: true,
     trim: true,
   },
   description: {
     type: String,
-    required: [true, 'Service description is required.'],
+    default: '',
   },
   price: {
     type: Number,
-    required: [true, 'Service price is required.'],
-  },
-  category: {
-    type: String,
-    enum: ['men', 'women', 'kids'],
-    required: [true, 'Service category is required.'],
+    required: true,
+    min: 0,
   },
   imageUrl: {
     type: String,
+    default: '',
   },
   imagePublicId: {
     type: String,
-  },
-  features: {
-    type: [String],
-    default: [],
+    default: '',
   },
 }, {
   timestamps: true,
 });
 
-export default mongoose.model('Service', serviceSchema);
+const Service = mongoose.models.Service || mongoose.model('Service', serviceSchema);
+export default Service;

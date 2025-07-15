@@ -1,8 +1,11 @@
 import nodemailer from 'nodemailer';
 
-const sendEmail = async (options) => {
+const sendEmail = async ({ email, subject, message }) => {
+  // Create transporter with your SMTP service info (e.g., Gmail, Mailtrap)
   const transporter = nodemailer.createTransport({
-    service: 'Gmail',
+    host: process.env.EMAIL_HOST,      // e.g., smtp.gmail.com
+    port: process.env.EMAIL_PORT,      // e.g., 587
+    secure: false,                     // true for 465, false for other ports
     auth: {
       user: process.env.EMAIL_USER,
       pass: process.env.EMAIL_PASS,
@@ -10,12 +13,13 @@ const sendEmail = async (options) => {
   });
 
   const mailOptions = {
-    from: process.env.EMAIL_USER,
-    to: options.email,
-    subject: options.subject,
-    text: options.message,
+    from: `"Tailoring App" <${process.env.EMAIL_USER}>`,
+    to: email,
+    subject,
+    text: message,
   };
 
+  // Send the email
   await transporter.sendMail(mailOptions);
 };
 

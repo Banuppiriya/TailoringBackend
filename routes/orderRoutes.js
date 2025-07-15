@@ -1,67 +1,53 @@
-// routes/orderRoutes.js
-
 import express from 'express';
-import Order from '../models/Order.js';
-import { protect } from '../middlewares/authMiddleware.js';
+import {
+  createOrder,
+  getOrders,
+  getOrderById,
+  assignTailor,
+  sendPaymentRequest,
+  updateOrderStatusByAdmin,
+  updateOrderStatus,
+  deleteOrder,
+  getMyOrders,
+  getMyAssignedOrders,
+} from '../controllers/orderController.js';
 
 const router = express.Router();
 
-// GET /api/order - fetch all orders
-router.get('/', protect, async (req, res) => {
-  try {
-    const orders = await Order.find({})
-      .populate('service')
-      .populate('customer', 'username email')
-      .populate('tailor', 'username email');
-    res.json(orders);
-  } catch (error) {
-    console.error('Failed to fetch orders:', error);
-    res.status(500).json({ message: 'Server error fetching orders' });
-  }
-});
+// ✅ Create a new order
+router.post('/', createOrder);
 
-// GET /api/order/:id - fetch a single order by ID
-router.get('/:id', protect, async (req, res) => {
-  try {
-    const order = await Order.findById(req.params.id)
-      .populate('service')
-      .populate('customer', 'username email')
-      .populate('tailor', 'username email');
+// ✅ Get all orders (admin or general)
+router.get('/', getOrders);
 
-    if (!order) {
-      return res.status(404).json({ message: 'Order not found' });
-    }
+// ✅ Get current logged-in customer's orders
+router.get('/my-orders', getMyOrders);
 
-    res.json(order);
-  } catch (error) {
-    console.error('Failed to fetch order by ID:', error);
-    res.status(500).json({ message: 'Server error fetching order' });
-  }
-});
+// ✅ Get orders assigned to the logged-in tailor
+router.get('/assigned-orders', getMyAssignedOrders);
 
-// PUT /api/order/:id - assign tailor or update order
-router.put('/:id', protect, async (req, res) => {
-  try {
-    const order = await Order.findById(req.params.id);
+// ✅ Get a specific order by ID
+router.get('/:orderId', getOrderById);
 
-    if (!order) {
-      return res.status(404).json({ message: 'Order not found' });
-    }
+// ✅ Assign a tailor to an order (admin)
+router.put('/:orderId/assign-tailor', assignTailor);
 
-    // Update fields (e.g., assign tailor)
-    const { tailor, status, service, price } = req.body;
+// ✅ Generic update order (admin/tailor)
+import { updateOrder } from '../controllers/orderController.js';
+router.put('/:orderId', updateOrder);
 
-    if (tailor) order.tailor = tailor;
-    if (status) order.status = status;
-    if (service) order.service = service;
-    if (price) order.price = price;
+// ✅ Admin updates order status (pending → processing → completed)
+router.put('/:orderId/status', updateOrderStatusByAdmin);
 
-    const updatedOrder = await order.save();
-    res.json(updatedOrder);
-  } catch (error) {
-    console.error('Error updating order:', error);
-    res.status(500).json({ message: 'Server error updating order' });
-  }
-});
+// ✅ Customer or tailor updates status (cancelled/completed)
+router.put('/:orderId/customer-status', updateOrderStatus);
+
+// ✅ Simulate payment processing
+router.post('/:orderId/pay', sendPaymentRequest);
+
+
+
+// ✅ Delete an order (admin only)
+router.delete('/:orderId', deleteOrder);
 
 export default router;

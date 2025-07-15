@@ -1,4 +1,5 @@
 import mongoose from 'mongoose';
+import bcrypt from 'bcryptjs';
 import crypto from 'crypto';
 
 const userSchema = new mongoose.Schema({
@@ -6,17 +7,19 @@ const userSchema = new mongoose.Schema({
     type: String,
     required: true,
     trim: true,
+    unique: true, // unique username
   },
   email: {
     type: String,
     required: true,
-    unique: true,
+    unique: true, // unique email
     lowercase: true,
+    trim: true,
   },
   password: {
     type: String,
     required: function () {
-      return this.provider !== 'google';
+      return this.provider === 'local';
     },
     select: false,
   },
@@ -25,30 +28,42 @@ const userSchema = new mongoose.Schema({
     enum: ['customer', 'tailor', 'admin'],
     default: 'customer',
   },
+  available: {
+    type: Boolean,
+    default: true, // Tailors are available by default
+  },
   provider: {
     type: String,
     enum: ['local', 'google'],
     default: 'local',
   },
-  // --- New field for profile picture ---
   profilePicture: {
     type: String,
-    default: '', // Default to an empty string if no picture is set
+    default: '',
   },
-  // --- End new field ---
   passwordResetToken: String,
   passwordResetExpires: Date,
 }, {
   timestamps: true,
 });
 
-// Method to generate password reset token
+userSchema.pre('save', async function (next) {
+  if (!this.isModified('password') || this.provider !== 'local') return next();
+  this.password = await bcrypt.hash(this.password, 12);
+  next();
+});
+
+userSchema.methods.correctPassword = async function(candidatePassword) {
+  if (!this.password) return false;
+  return await bcrypt.compare(candidatePassword, this.password);
+};
+
 userSchema.methods.createPasswordResetToken = function () {
   const resetToken = crypto.randomBytes(32).toString('hex');
   this.passwordResetToken = crypto.createHash('sha256').update(resetToken).digest('hex');
-  this.passwordResetExpires = Date.now() + 10 * 60 * 1000; // 10 minutes
+  this.passwordResetExpires = Date.now() + 10 * 60 * 1000;
   return resetToken;
 };
 
-const User = mongoose.model('User', userSchema);
-export default User; // ✅ ES6 default export
+const User = mongoose.models.User || mongoose.model('User', userSchema);
+export default User;

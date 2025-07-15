@@ -1,3 +1,4 @@
+// config/stripe.js
 import Stripe from 'stripe';
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
@@ -9,12 +10,12 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
  * @param {Object} params - Parameters for the checkout session
  * @returns {Promise<Stripe.Checkout.Session>} - Created checkout session
  */
-export async function createCheckoutSession(params) {
+export async function generateStripeCheckoutSession(params) {
   try {
     const session = await stripe.checkout.sessions.create(params);
     return session;
   } catch (error) {
-    console.error('Stripe createCheckoutSession error:', error);
+    console.error('Stripe session generation failed:', error);
     throw error;
   }
 }
