@@ -18,6 +18,9 @@ import measurementRoutes from './routes/measurementRoutes.js';
 import customizerRoutes from './routes/customizerRoutes.js';
 import orderRoutes from './routes/orderRoutes.js';
 import uploadRoutes from './routes/upload.js';
+import { handleStripeWebhook } from './controllers/webhookController.js';
+
+
 
 
 // __dirname workaround in ES6 modules
@@ -28,6 +31,9 @@ const __dirname = path.dirname(__filename);
 connectDB();
 
 const app = express();
+
+app.post('/webhook', express.raw({ type: 'application/json' }), handleStripeWebhook);
+
 
 // Middleware to parse JSON bodies
 app.use(express.json());
@@ -59,7 +65,10 @@ app.use('/api/orders', orderRoutes);
 app.use('/api/measurements', measurementRoutes);
 app.use('/api/customizer', customizerRoutes);
 app.use('/api/upload', uploadRoutes);
-app.use('/uploads', express.static(path.join(path.resolve(), 'uploads')));
+// Blog articles API
+import blogRoutes from './routes/blogRoutes.js';
+app.use('/api/blog', blogRoutes);
+
 // Optional: If you want to support `/api/profile` same as `/api/user`
 app.use('/api/profile', userRoutes);
 

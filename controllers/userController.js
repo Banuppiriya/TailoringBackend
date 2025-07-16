@@ -28,6 +28,8 @@ export const getUserProfile = async (req, res) => {
 
 // Update user profile
 export const updateUserProfile = async (req, res) => {
+  console.log('updateUserProfile called');
+  console.log('req.body.profilePicture:', req.body.profilePicture);
   try {
     const user = await User.findById(req.user.id);
 
@@ -38,6 +40,7 @@ export const updateUserProfile = async (req, res) => {
       user.bio = req.body.bio || user.bio;
 
       if (req.body.profilePicture !== undefined) {
+        console.log('Updating user.profilePicture to:', req.body.profilePicture);
         user.profilePicture = req.body.profilePicture;
       }
 
@@ -46,6 +49,8 @@ export const updateUserProfile = async (req, res) => {
       }
 
       const updatedUser = await user.save();
+
+      console.log('Saved user.profilePicture:', updatedUser.profilePicture);
 
       res.json({
         _id: updatedUser._id,

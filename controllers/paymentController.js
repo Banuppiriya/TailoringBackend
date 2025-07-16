@@ -23,8 +23,8 @@ export const createCheckoutSession = async (req, res) => {
       }],
       mode: 'payment',
       customer_email: email,
-      success_url: `${process.env.CLIENT_URL}/payment-success?session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `${process.env.CLIENT_URL}/payment-cancel`,
+      success_url: `${process.env.FRONT_END_URL}/payment-success?session_id={CHECKOUT_SESSION_ID}`,
+      cancel_url: `${process.env.FRONT_END_URL}/payment-cancel`,
       metadata: { orderId },
     });
 
@@ -35,34 +35,7 @@ export const createCheckoutSession = async (req, res) => {
   }
 };
 
-// Handle Stripe webhooks
-export const handleStripeWebhook = async (req, res) => {
-  const sig = req.headers['stripe-signature'];
-  let event;
 
-  try {
-    event = stripe.webhooks.constructEvent(req.body, sig, process.env.STRIPE_WEBHOOK_SECRET);
-  } catch (err) {
-    return res.status(400).send(`Webhook Error: ${err.message}`);
-  }
-
-  if (event.type === 'checkout.session.completed') {
-    const session = event.data.object;
-    const { orderId } = session.metadata;
-
-    try {
-      await Order.findByIdAndUpdate(orderId, {
-        paymentStatus: 'paid',
-        paymentIntentId: session.payment_intent,
-      });
-    } catch (err) {
-      console.error('Failed to update order payment status:', err);
-      // Optionally, handle this error, e.g., by sending an alert
-    }
-  }
-
-  res.status(200).json({ received: true });
-};
 
 // Send a payment link via email
 export const sendPaymentLink = async (req, res) => {
