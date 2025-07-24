@@ -1,5 +1,4 @@
 import mongoose from 'mongoose';
-import User from './User.js';  // Keep this if you're referencing User somewhere
 
 const serviceSchema = new mongoose.Schema({
   title: {

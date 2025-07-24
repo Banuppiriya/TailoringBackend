@@ -1,21 +1,21 @@
 import express from 'express';
 import blogController from '../controllers/blogController.js';
+
 const router = express.Router();
 
-// Get all articles
+// Get all blog articles
 router.get('/', blogController.getAllArticles);
 
-// Get article by slug
+// Get a single article by slug
 router.get('/:slug', blogController.getArticleBySlug);
 
-
-// (Optional) Create article
+// (Optional) Create a new article
 router.post('/', blogController.createArticle);
 
-// Update article by slug
+// Update an article by slug
 router.put('/:slug', blogController.updateArticleBySlug);
 
-// Delete article by slug
+// Delete an article by slug
 router.delete('/:slug', blogController.deleteArticleBySlug);
 
 export default router;

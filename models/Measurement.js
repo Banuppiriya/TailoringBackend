@@ -3,6 +3,7 @@ import mongoose from 'mongoose';
 const measurementDetail = {
   type: Number,
   default: 0,
+  min: 0,
 };
 
 const measurementSchema = new mongoose.Schema({
@@ -10,7 +11,7 @@ const measurementSchema = new mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User',
     required: true,
-    unique: true,
+    unique: true,  // only one measurement per user
   },
   upperBody: {
     chest: measurementDetail,

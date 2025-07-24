@@ -1,32 +1,53 @@
 import dotenv from 'dotenv';
-dotenv.config();
-
 import { v2 as cloudinary } from 'cloudinary';
 
-// Configure Cloudinary with environment variables
+dotenv.config();
+
+// Validate required environment variables
+const { CLOUDINARY_CLOUD_NAME, CLOUDINARY_API_KEY, CLOUDINARY_API_SECRET } = process.env;
+
+if (!CLOUDINARY_CLOUD_NAME || !CLOUDINARY_API_KEY || !CLOUDINARY_API_SECRET) {
+  throw new Error('Missing Cloudinary configuration in environment variables.');
+}
+
+// Configure Cloudinary
 cloudinary.config({
-  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
-  api_key: process.env.CLOUDINARY_API_KEY,
-  api_secret: process.env.CLOUDINARY_API_SECRET,
+  cloud_name: CLOUDINARY_CLOUD_NAME,
+  api_key: CLOUDINARY_API_KEY,
+  api_secret: CLOUDINARY_API_SECRET,
 });
 
 /**
  * Upload an image file to Cloudinary under the 'services' folder.
- * @param {string} filePath - Path or buffer of the image file to upload
- * @returns {Promise} - Cloudinary upload response
+ * @param {string} filePath - Local path or remote URL of the image to upload
+ * @returns {Promise<object>} - Cloudinary upload response
  */
 export const uploadImage = async (filePath) => {
-  return await cloudinary.uploader.upload(filePath, { folder: 'services' });
+  try {
+    const result = await cloudinary.uploader.upload(filePath, {
+      folder: 'services',
+    });
+    return result;
+  } catch (error) {
+    console.error('Cloudinary upload error:', error);
+    throw new Error('Image upload to Cloudinary failed.');
+  }
 };
 
 /**
  * Delete an image from Cloudinary by its public ID.
  * @param {string} publicId - Public ID of the image to delete
- * @returns {Promise} - Cloudinary delete response
+ * @returns {Promise<object>} - Cloudinary deletion response
  */
 export const deleteImage = async (publicId) => {
-  return await cloudinary.uploader.destroy(publicId);
+  try {
+    const result = await cloudinary.uploader.destroy(publicId);
+    return result;
+  } catch (error) {
+    console.error('Cloudinary deletion error:', error);
+    throw new Error('Image deletion from Cloudinary failed.');
+  }
 };
 
-// Export cloudinary instance in case you need direct access elsewhere
+// Export the configured Cloudinary instance for other usages
 export { cloudinary };

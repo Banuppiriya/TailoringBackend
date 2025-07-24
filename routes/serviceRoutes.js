@@ -6,35 +6,34 @@ import {
   deleteService,
 } from '../controllers/serviceController.js';
 import { protect, authorize } from '../middlewares/authMiddleware.js';
-import upload from '../utils/multerMiddleware.js';  // <-- import multer upload here
-import { uploadImage } from '../utils/cloudinary.js';
+import upload from '../utils/multerMiddleware.js';
 
 const router = express.Router();
 
-// Public routes (anyone can view services)
+// Public route: anyone can fetch services
 router.get('/', getServices);
 
 // Admin-only routes
 router.post(
   '/',
   protect,
-  authorize(['admin']),
-  upload.single('image'), // 'image' should match the field name in your form/frontend
+  authorize('admin'), // you can pass string or array, your middleware handles both
+  upload.single('image'), // expects 'image' field from frontend form
   createService
 );
 
 router.put(
   '/:id',
   protect,
-  authorize(['admin']),
-  upload.single('image'), // 'image' should match the field name in your form/frontend
+  authorize('admin'),
+  upload.single('image'),
   updateService
 );
 
 router.delete(
   '/:id',
   protect,
-  authorize(['admin']),
+  authorize('admin'),
   deleteService
 );
 

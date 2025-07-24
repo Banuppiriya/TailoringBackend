@@ -1,4 +1,3 @@
-// models/Order.js
 import mongoose from 'mongoose';
 
 const { Schema, model, Types } = mongoose;
@@ -12,19 +11,19 @@ const OrderSchema = new Schema(
     },
     customerName: {
       type: String,
-      required: false, // ✅ Now optional
+      required: false, // Optional
       trim: true,
     },
     customerEmail: {
       type: String,
-      required: false, // ✅ Now optional
+      required: false, // Optional
       lowercase: true,
       trim: true,
       match: [/\S+@\S+\.\S+/, 'Please provide a valid email address'],
     },
     customerPhone: {
       type: String,
-      required: false, // ✅ Now optional
+      required: false, // Optional
       trim: true,
     },
     service: {
@@ -44,29 +43,44 @@ const OrderSchema = new Schema(
     },
     status: {
       type: String,
-      enum: ['pending', 'accepted', 'processing', 'completed', 'cancelled'],
+      enum: ['pending', 'in progress', 'completed', 'cancelled'],
       default: 'pending',
+    },
+    paymentStatus: {
+      type: String,
+      enum: ['pending', 'initial_paid', 'completed'],
+      default: 'pending',
+    },
+    totalAmount: {
+      type: Number,
+      required: true,
+    },
+    paidAmount: {
+      type: Number,
+      default: 0,
+    },
+    remainingAmount: {
+      type: Number,
+      default: function () {
+        return this.totalAmount - this.paidAmount;
+      },
     },
     tailor: {
       type: Types.ObjectId,
       ref: 'User',
       required: false,
     },
-    paymentStatus: {
-      type: String,
-      enum: ['unpaid', 'paid', 'refunded', 'pending'], // 🧹 Cleaned up
-      default: 'unpaid',
-    },
-    totalPrice: {
-      type: Number,
-      required: false,
-      min: [0, 'Price cannot be negative'],
-    },
   },
   {
-    timestamps: true, // Adds createdAt and updatedAt fields
+    timestamps: true, // adds createdAt and updatedAt
   }
 );
+
+// Sync remainingAmount before saving (in case paidAmount changes)
+OrderSchema.pre('save', function (next) {
+  this.remainingAmount = this.totalAmount - this.paidAmount;
+  next();
+});
 
 const Order = model('Order', OrderSchema);
 export default Order;
